@@ -1,0 +1,11 @@
+/Library/
+/Temp/
+/.vs/
+/Build/
+/obj/
+
+*.sln
+*.csproj
+*.rar
+*.zip
+*.7ip
