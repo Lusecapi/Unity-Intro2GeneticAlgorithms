@@ -15,7 +15,9 @@ public class MazeGenerator : MonoBehaviour
     private Color startPointColor = Color.blue;
     private Color exitPointColor = Color.green;
 
-    private int[,] defaultMaze = { { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    //--------Solo de prueba
+    private MazeMap maze;
+    private int[,] mazeMatrix = { { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
                             { 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1 },
                             { 8, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1 },
                             { 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1 },
@@ -25,19 +27,14 @@ public class MazeGenerator : MonoBehaviour
                             { 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 5 },
                             { 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1 },
                             { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 } };
-
-    private void Start()
-    {
-        GenerateMaze(defaultMaze);
-    }
-
     public void GenerateMazeFromEditor()
     {
-        GenerateMaze(defaultMaze, true);
+        GenerateMaze(maze, true);
     }
+    //-------------------------
 
 
-    public void GenerateMaze(int[,] maze, bool calledFromEditor = false)
+    public void GenerateMaze(MazeMap maze, bool calledFromEditor = false)
     {
         string holderName = "Maze";
         if (GameObject.Find(holderName))
@@ -45,20 +42,19 @@ public class MazeGenerator : MonoBehaviour
 
         Renderer tileRender = tilePrefab.GetComponent<Renderer>();
         Vector2 tileSize = new Vector2(tileRender.bounds.size.x, tileRender.bounds.size.z);
-        Vector2 mazeSize = new Vector2(maze.GetLength(0), maze.GetLength(1));
         GameObject mazeGameObject = new GameObject(holderName);
 
-        for (int row = 0; row < mazeSize.x; row++)
+        for (int row = 0; row < maze.Size.x; row++)
         {
-            for (int colum = 0; colum < mazeSize.y; colum++)
+            for (int colum = 0; colum < maze.Size.y; colum++)
             {
-                Vector3 tilePosition = new Vector3(-mazeSize.x / 2 + (row * tileSize.x), 0, -mazeSize.y / 2 +(colum * tileSize.y));
+                Vector3 tilePosition = new Vector3(-maze.Size.x / 2 + (row * tileSize.x), 0, -maze.Size.y / 2 +(colum * tileSize.y));
                 Transform tile = Instantiate(tilePrefab, tilePosition, Quaternion.identity);
                 tile.localScale = tile.localScale * (1 - outlinePercet);
                 tile.SetParent(mazeGameObject.transform);
 
                 if(!calledFromEditor)
-                    tile.GetComponent<Renderer>().material.color = GetTileColor(maze[row, colum]);
+                    tile.GetComponent<Renderer>().material.color = GetTileColor(maze.MazeMatrix[row, colum]);
             }
         }
     }
