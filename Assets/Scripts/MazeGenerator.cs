@@ -15,6 +15,8 @@ public class MazeGenerator : MonoBehaviour
     private Color startPointColor = Color.blue;
     private Color exitPointColor = Color.green;
 
+    public Material[,] TilesMatrix { get; set; }
+
     //--------Solo de prueba
     private MazeMap maze;
     private int[,] mazeMatrix = { { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
@@ -43,7 +45,8 @@ public class MazeGenerator : MonoBehaviour
         Renderer tileRender = tilePrefab.GetComponent<Renderer>();
         Vector2 tileSize = new Vector2(tileRender.bounds.size.x, tileRender.bounds.size.z);
         GameObject mazeGameObject = new GameObject(holderName);
-
+        if(!calledFromEditor)
+            TilesMatrix = new Material[(int)maze.Size.x, (int)maze.Size.y];
         for (int row = 0; row < maze.Size.x; row++)
         {
             for (int colum = 0; colum < maze.Size.y; colum++)
@@ -53,8 +56,13 @@ public class MazeGenerator : MonoBehaviour
                 tile.localScale = tile.localScale * (1 - outlinePercet);
                 tile.SetParent(mazeGameObject.transform);
 
-                if(!calledFromEditor)
-                    tile.GetComponent<Renderer>().material.color = GetTileColor(maze.MazeMatrix[row, colum]);
+                Material tileMat;
+                if (!calledFromEditor)
+                {
+                    tileMat = tile.GetComponent<Renderer>().material;
+                    TilesMatrix[row, colum] = tileMat;
+                    tileMat.color = GetTileColor(maze.MazeMatrix[row, colum]);
+                }
             }
         }
     }
