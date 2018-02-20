@@ -125,7 +125,7 @@ GameObject:
   - component: {fileID: 1028580470}
   m_Layer: 5
   m_Name: Generation Text
-  m_TagString: Untagged
+  m_TagString: Epoch Text
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -145,7 +145,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 254.8, y: -26.8}
+  m_AnchoredPosition: {x: 254.80078, y: -26.799988}
   m_SizeDelta: {x: 509.6, y: 53.6}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1028580470
@@ -227,11 +227,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9457d0f463d79649b80b9cfa5704b3c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  generationText: {fileID: 1028580470}
+  allowRepathMove: 0
+  showFittestByEpoch: 1
   totalEpochs: 1000
-  populationSize: 1000
+  populationSize: 200
+  reproductionMode: 0
+  parentSelectionMethod: 1
+  survivorsRange: 0.34
   crossoverRate: 0.7
-  mutationRate: 0.001
+  mutationRate: 0.07
+  chromosomesLenght: 35
 --- !u!1 &1246339976
 GameObject:
   m_ObjectHideFlags: 0
