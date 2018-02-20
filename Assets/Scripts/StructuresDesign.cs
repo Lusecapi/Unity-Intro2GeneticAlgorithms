@@ -60,7 +60,7 @@ public class MazeMap
         }
     }
 
-    public void TestRoute(ref Genome genome, out List<Gene> routeGenes, out List<Vector2> routeCoordinates)
+    public void TestRoute(ref Genome genome, out List<Gene> routeGenes, out List<Vector2> routeCoordinates, bool allowMoveOverPath)
     {
         pathMemory = new int[(int)Size.x, (int)Size.y];
         Vector2 actualPos = StartPoint;
@@ -75,7 +75,7 @@ public class MazeMap
             Direction dir = (Direction)gene.Decode();
             Vector2 movement = GetMovement(dir);
             Vector2 newPos;
-            TryToMove(actualPos, movement, out newPos);
+            TryToMove(actualPos, movement, out newPos, allowMoveOverPath);
             if (actualPos != newPos)
             {
                 routeGenes.Add(gene);
@@ -113,7 +113,7 @@ public class MazeMap
         return movement;
     }
 
-    private void TryToMove(Vector2 actualPos, Vector2 movement, out Vector2 newPos)
+    private void TryToMove(Vector2 actualPos, Vector2 movement, out Vector2 newPos, bool allowMoveOverPath)
     {
         Vector2 initialPos = actualPos;
         newPos = actualPos + movement;
@@ -126,9 +126,12 @@ public class MazeMap
                 newPos = initialPos;
             }
 
-            if(pathMemory[(int)newPos.x, (int)newPos.y] == (int)MazeElement.Path)
+            if (!allowMoveOverPath)
             {
-                newPos = initialPos;
+                if (pathMemory[(int)newPos.x, (int)newPos.y] == (int)MazeElement.Path)
+                {
+                    newPos = initialPos;
+                }
             }
         }
         else
@@ -149,10 +152,13 @@ public class Gene
 
     public Gene() { }
 
-    public Gene(int nucleotides)
+    public Gene(int totNucleotides)
     {
         Nucleotides = new List<int>();
-        Nucleotides.Add(new int());
+        for (int index = 0; index < totNucleotides; index++)
+        {
+            Nucleotides.Add(new int());
+        }
     }
 
     public static Gene GetRandom(int geneSize)
@@ -218,10 +224,10 @@ public class Chromosome
 
     public Chromosome() { }
 
-    public Chromosome(int genes)
+    public Chromosome(int totGenes)
     {
         Genes = new List<Gene>();
-        for (int index = 0; index < genes; index++)
+        for (int index = 0; index < totGenes; index++)
         {
             Genes.Add(new Gene(2));
         }
@@ -286,12 +292,12 @@ public class Genome
     };*/
     public Genome() { }
 
-    public Genome(int chromosomes, int genes)
+    public Genome(int totChromos, int totGenes)
     {
         Chromosomes = new List<Chromosome>();
-        for (int index = 0; index < chromosomes; index++)
+        for (int index = 0; index < totChromos; index++)
         {
-            Chromosomes.Add(new Chromosome(genes));
+            Chromosomes.Add(new Chromosome(totGenes));
         }
         Fitness = 0;
     }

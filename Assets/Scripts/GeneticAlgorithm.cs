@@ -20,15 +20,20 @@ public class GeneticAlgorithm : MonoBehaviour {
                             { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 } };
 
 
-    //the population of genomes
-    List<Genome> population;
     //size of population
+    public bool allowMoveOverPath;
+    public bool showFittestByEpoch;
     public int totalEpochs = 100;
     public int populationSize = 140;
+    [Range(0.01f, 0.99f)]
     public float crossoverRate = 0.7f;
+    [Range(0.001f,0.99f)]
     public float mutationRate = 0.001f;
     //how many bits per chromosome
-    int chromosomesLenght = 35;
+    public int chromosomesLenght = 35;
+
+    //the population of genomes
+    List<Genome> population;
     //how many bits per gene
     int genesLenght = 2;
     int fittestGenomeIndex;
@@ -49,34 +54,9 @@ public class GeneticAlgorithm : MonoBehaviour {
 
     private void Start()
     {
-        generationText.text = string.Format("Generation: {0}", generation);
         maze = new MazeMap(mazeMatrix);
         mazeGenerator.GenerateMaze(maze);
         StartCoroutine(StartAlgorithm());
-    }
-
-    void CreateStartPopulation()
-    {
-        population = new List<Genome>();
-        for (int index = 0; index < populationSize; index++)
-        {
-            population.Add(Genome.GetRandom(1, chromosomesLenght, genesLenght));
-        }
-    }
-
-    private IEnumerator ShowPath(List<Vector2> route)
-    {
-        isShowingPath = true;
-        for (int index = 0; index < route.Count; index++)
-        {
-            yield return new WaitForEndOfFrame();
-            Gene gene = fittestRouteGenes[index];
-            Vector2 coordinate = route[index];
-            mazeGenerator.TilesMatrix[(int)coordinate.x, (int)coordinate.y].color = Color.yellow;
-            yield return new WaitForSeconds(0.3f);
-        }
-        print("Finish");
-        isShowingPath = false;
     }
 
     IEnumerator StartAlgorithm()
@@ -102,7 +82,7 @@ public class GeneticAlgorithm : MonoBehaviour {
                 Genome genome = population[genomeIndex];
                 List<Gene> routeGenes;
                 List<Vector2> routeCoordinates;
-                maze.TestRoute(ref genome, out routeGenes, out routeCoordinates);
+                maze.TestRoute(ref genome, out routeGenes, out routeCoordinates, allowMoveOverPath);
                 totalFitnessScore += genome.Fitness;
                 if(genome.Fitness > generationBestFitnessScore)
                 {
@@ -121,15 +101,24 @@ public class GeneticAlgorithm : MonoBehaviour {
                 if (bestFitnessScore == 1) { soulutionFound = true; break; }
             }
 
-            if(generationBestFitnessScore > bestFitnessScore)
+            if (showFittestByEpoch)
             {
-                ClearPath(bestRoute);
+                StartCoroutine(ShowPath(generationBestRoute, false));
+                yield return new WaitUntil(() => !isShowingPath);
+                yield return new WaitForEndOfFrame();
+            }
+
+            if (generationBestFitnessScore > bestFitnessScore)
+            {
                 fittestGenomeIndex = generationFittesGenome;
                 bestFitnessScore = generationBestFitnessScore;
                 bestRoute = generationBestRoute;
                 fittestRouteGenes = generationFittestRouteGenes;
-                StartCoroutine(ShowPath(bestRoute));
+                print("Found new best in Generation/Epoch: "+generation+"\n" + population[fittestGenomeIndex]);
+                ClearPath(bestRoute);
+                StartCoroutine(ShowPath(bestRoute, true));
                 yield return new WaitUntil(() => !isShowingPath);
+                yield return new WaitForEndOfFrame();
             }
 
             if (!soulutionFound)
@@ -137,10 +126,13 @@ public class GeneticAlgorithm : MonoBehaviour {
                 //Reproduction
                 int newBabies = 0;
                 List<Genome> babiesPopulation = new List<Genome>();
+                //Genome mom = population[fittestGenomeIndex];
+                Genome mom;
+                Genome dad;
                 while (newBabies < populationSize)
                 {
-                    Genome mom = RoulleteWheelSelection();
-                    Genome dad = RoulleteWheelSelection();
+                    mom = RoulleteWheelSelection();
+                    dad = RoulleteWheelSelection();
                     Genome baby;
                     Crossover(mom, dad, out baby);
                     Mutate(ref baby);
@@ -150,14 +142,45 @@ public class GeneticAlgorithm : MonoBehaviour {
                 population = babiesPopulation;
 
                 epoch++;
-                yield return 1;
+                yield return null;
+
+                if (showFittestByEpoch)
+                    ClearPath(generationBestRoute);
             }
             else
             {
-                print("solution found");
+                print("Solution Found");
             }
         }
-        print("Algoritmo terminado");
+        print("Process Completed");
+    }
+
+    void CreateStartPopulation()
+    {
+        population = new List<Genome>();
+        for (int index = 0; index < populationSize; index++)
+        {
+            population.Add(Genome.GetRandom(1, chromosomesLenght, genesLenght));
+        }
+    }
+
+    private IEnumerator ShowPath(List<Vector2> coordinatesRoute, bool allTimeBest)
+    {
+        isShowingPath = true;
+        Color roadColor, stopColor;
+        roadColor = allTimeBest ? Color.yellow : Color.magenta;
+        stopColor = Color.red;
+        for (int index = 0; index < coordinatesRoute.Count; index++)
+        {
+            yield return new WaitForEndOfFrame();
+            //Gene gene = fittestRouteGenes[index];
+            Vector2 coordinate = coordinatesRoute[index];
+            Color color = index == coordinatesRoute.Count - 1 ? stopColor : roadColor;
+            mazeGenerator.TilesMatrix[(int)coordinate.x, (int)coordinate.y].color = color;
+            yield return new WaitForSeconds(0.05f);
+        }
+        yield return new WaitForEndOfFrame();
+        isShowingPath = false;
     }
 
     private Genome RoulleteWheelSelection()
@@ -179,25 +202,34 @@ public class GeneticAlgorithm : MonoBehaviour {
 
     private void Crossover(Genome mom, Genome dad, out Genome baby)
     {
-        Genome referent = (int)Random.Range(0, 2) == 0 ? mom : dad;
+        //print("mom\n" + mom);
+        //print("dad\n" + dad);
+        Genome referent = Random.Range(0, 2) == 0 ? mom : dad;
+        //print("referent1\n"+referent);
         if (Random.Range(0,1f) > crossoverRate || mom.Equals(dad))
         {
+            //print("no hay cruce");
             baby = referent;
+            //print("baby\n"+baby);
             return;
         }
-
+        //print("hay cruce");
         //A random point is chosen along the length of the chromosome to split the chromosomes
         int splitPoint = Random.Range(0, chromosomesLenght);
+        //print("split at: " + splitPoint);
         baby = new Genome(1, chromosomesLenght);
+        //print("unboorned baby:\n" + baby);
         for (int index = 0; index < splitPoint; index++)
         {
-            baby.Chromosomes[0].Genes.Add(referent.Chromosomes[0].Genes[index]);
+            baby.Chromosomes[0].Genes[index] = referent.Chromosomes[0].Genes[index];
         }
-        referent = referent.Equals(dad) ? mom : dad;
+        referent = referent.Equals(mom) ? dad : mom;
+        //print("referent2\n" + referent);
         for (int index = splitPoint; index < chromosomesLenght; index++)
         {
-            baby.Chromosomes[0].Genes.Add(referent.Chromosomes[0].Genes[index]);
+            baby.Chromosomes[0].Genes[index] = referent.Chromosomes[0].Genes[index];
         }
+        //print("baby\n" + baby);
     }
 
     private void Mutate(ref Genome baby)
@@ -218,7 +250,7 @@ public class GeneticAlgorithm : MonoBehaviour {
     {
         for (int index = 0; index < route.Count; index++)
         {
-            Gene gene = fittestRouteGenes[index];
+            //Gene gene = fittestRouteGenes[index];
             Vector2 coordinate = route[index];
             mazeGenerator.TilesMatrix[(int)coordinate.x, (int)coordinate.y].color = Color.white;
         }
