@@ -89,13 +89,15 @@ public class GeneticAlgorithm : MonoBehaviour {
         yield return new WaitForSeconds(0.3f);
         CreateStartPopulation();
         int epoch = 0;
-        while(epoch < totalEpochs && !solutionFound)
+        while (epoch < totalEpochs && !solutionFound)
         {
             generation = epoch;
             epochsText.text = string.Format("Generation: {0}", generation);
             //Update Fitness Scores
+
             StartCoroutine(UpdateFitnessScores());
             yield return new WaitUntil(() => fitnessScoresUpdated);
+
             if (!solutionFound)
             {
                 //Reproduce genomes to create new Genertion
@@ -148,9 +150,8 @@ public class GeneticAlgorithm : MonoBehaviour {
                 epochBestRouteGenes = routeGenes;
             }
 
-            if (bestFitnessScore == 1)
+            if (epochBestFitnessScore == 1)
             {
-                print("aqui");
                 solutionFound = true;
                 break;//We finish search for the fittest genome
             }
@@ -161,7 +162,6 @@ public class GeneticAlgorithm : MonoBehaviour {
         {
             StartCoroutine(ShowPath(epochBestRoute, false));
             yield return new WaitUntil(() => !isShowingPath);
-            yield return new WaitForEndOfFrame();
         }
 
         if (epochBestFitnessScore > bestFitnessScore)
@@ -177,11 +177,13 @@ public class GeneticAlgorithm : MonoBehaviour {
             print("Found new best in Generation/Epoch: " + generation + "\n" + population[fittestGenomeIndex]);
             StartCoroutine(ShowPath(bestRoute, true));
             yield return new WaitUntil(() => !isShowingPath);
-            yield return new WaitForEndOfFrame();
         }
 
-        if (showFittestByEpoch)
-            ClearPath(epochBestRoute);
+        if (!solutionFound)
+        {
+            if (showFittestByEpoch)
+                ClearPath(epochBestRoute);
+        }
 
         fitnessScoresUpdated = true;
     }
@@ -216,11 +218,14 @@ public class GeneticAlgorithm : MonoBehaviour {
             while (newBabies < populationSize)
             {
                 GetParents(ref mom, ref dad);
-                Genome baby;
-                Crossover(mom, dad, out baby);
-                Mutate(ref baby);
-                babiesPopulation.Add(baby);
-                newBabies++;
+                Genome baby1;
+                Genome baby2;
+                Crossover(mom, dad, out baby1, out baby2);
+                Mutate(ref baby1);
+                Mutate(ref baby2);
+                babiesPopulation.Add(baby1);
+                babiesPopulation.Add(baby2);
+                newBabies += 2;
             }
         }
         else
@@ -229,20 +234,24 @@ public class GeneticAlgorithm : MonoBehaviour {
             GetParents(ref mom, ref dad);
             while (newBabies < populationSize)
             {
-                Genome baby;
-                Crossover(mom, dad, out baby);
-                Mutate(ref baby);
-                babiesPopulation.Add(baby);
-                newBabies++;
+                Genome baby1;
+                Genome baby2;
+                Crossover(mom, dad, out baby1, out baby2);
+                Mutate(ref baby1);
+                Mutate(ref baby2);
+                babiesPopulation.Add(baby1);
+                babiesPopulation.Add(baby2);
+                newBabies += 2;
             }
         }
 
-        List<Genome> allPopulation = new List<Genome>();
-        allPopulation.AddRange(babiesPopulation);
-        List<Genome> sortedList = allPopulation.OrderByDescending(genome => genome.Fitness).ToList();
+        //List<Genome> allPopulation = new List<Genome>();
+        //allPopulation.AddRange(babiesPopulation);
+        //List<Genome> sortedList = allPopulation.OrderByDescending(genome => genome.Fitness).ToList();
         population.Clear();
-        population.AddRange(sortedList);
-        population.RemoveRange(sortedList.Count, Mathf.Abs(sortedList.Count - populationSize));
+        //population.AddRange(sortedList);
+        //population.RemoveRange(sortedList.Count, population.Count - sortedList.Count);
+        population = babiesPopulation;
 
     }
 
@@ -343,16 +352,19 @@ public class GeneticAlgorithm : MonoBehaviour {
         return collection[selectedGenome];
     }
 
-    private void Crossover(Genome mom, Genome dad, out Genome baby)
+    private void Crossover(Genome mom, Genome dad, out Genome baby1, out Genome baby2)
     {
         //print("mom\n" + mom);
         //print("dad\n" + dad);
-        Genome referent = Random.Range(0, 2) == 0 ? mom : dad;
+        //Genome referent = Random.Range(0, 2) == 0 ? mom : dad;
         //print("referent1\n"+referent);
         if (Random.Range(0,1f) > crossoverRate || mom.Equals(dad))
         {
             //print("no hay cruce");
-            baby = referent;
+            baby1 = mom;
+            baby2 = dad;
+            //baby1 = referent;
+            //baby2 = referent.Equals(mom) ? dad : mom;
             //print("baby\n"+baby);
             return;
         }
@@ -360,17 +372,21 @@ public class GeneticAlgorithm : MonoBehaviour {
         //A random point is chosen along the length of the chromosome to split the chromosomes
         int splitPoint = Random.Range(0, chromosomesLenght);
         //print("split at: " + splitPoint);
-        baby = new Genome(1, chromosomesLenght);
+        baby1 = new Genome(1, chromosomesLenght);
+        baby2 = new Genome(1, chromosomesLenght);
         //print("unboorned baby:\n" + baby);
         for (int index = 0; index < splitPoint; index++)
         {
-            baby.Chromosomes[0].Genes[index] = referent.Chromosomes[0].Genes[index];
+            //baby1.Chromosomes[0].Genes[index] = referent.Chromosomes[0].Genes[index];
+            baby1.Chromosomes[0].Genes[index] = mom.Chromosomes[0].Genes[index];
+            baby2.Chromosomes[0].Genes[index] = dad.Chromosomes[0].Genes[index];
         }
-        referent = referent.Equals(mom) ? dad : mom;
+        //referent = referent.Equals(mom) ? dad : mom;
         //print("referent2\n" + referent);
         for (int index = splitPoint; index < chromosomesLenght; index++)
         {
-            baby.Chromosomes[0].Genes[index] = referent.Chromosomes[0].Genes[index];
+            baby1.Chromosomes[0].Genes[index] = dad.Chromosomes[0].Genes[index];
+            baby2.Chromosomes[0].Genes[index] = mom.Chromosomes[0].Genes[index];
         }
         //print("baby\n" + baby);
     }
