@@ -228,12 +228,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   allowRepathMove: 0
-  showFittestByEpoch: 0
+  showFittestByEpoch: 1
   totalEpochs: 100
   populationSize: 200
   reproductionMode: 0
   parentSelectionMethod: 4
-  survivorsRange: 0.1
+  survivorsRange: 0.3
   crossoverRate: 0.7
   mutationRate: 0.001
   chromosomesLenght: 35

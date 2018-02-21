@@ -87,14 +87,15 @@ public class GeneticAlgorithm : MonoBehaviour {
     IEnumerator StartAlgorithm()
     {
         yield return new WaitForSeconds(0.3f);
+
         CreateStartPopulation();
         int epoch = 0;
         while (epoch < totalEpochs && !solutionFound)
         {
             generation = epoch;
             epochsText.text = string.Format("Generation: {0}", generation);
+            
             //Update Fitness Scores
-
             StartCoroutine(UpdateFitnessScores());
             yield return new WaitUntil(() => fitnessScoresUpdated);
 
@@ -125,6 +126,12 @@ public class GeneticAlgorithm : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Test every genome of the population and assign its correspondent fittest value, 
+    /// Also select fittest genome of population and check if its the best of all time
+    /// And verify if it a solution or not
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator UpdateFitnessScores()
     {
         fitnessScoresUpdated = false;
@@ -188,6 +195,12 @@ public class GeneticAlgorithm : MonoBehaviour {
         fitnessScoresUpdated = true;
     }
 
+    /// <summary>
+    /// Shows the route
+    /// </summary>
+    /// <param name="coordinatesRoute"></param>
+    /// <param name="allTimeBest"></param>
+    /// <returns></returns>
     private IEnumerator ShowPath(List<Vector2> coordinatesRoute, bool allTimeBest)
     {
         isShowingPath = true;
@@ -207,6 +220,9 @@ public class GeneticAlgorithm : MonoBehaviour {
         isShowingPath = false;
     }
 
+    /// <summary>
+    /// Create breeds for the new population
+    /// </summary>
     private void ReproduceGeneration()
     {
         int newBabies = 0;
@@ -255,6 +271,11 @@ public class GeneticAlgorithm : MonoBehaviour {
 
     }
 
+    /// <summary>
+    /// Get the parents to reproduces based on the ReproductionMethod selected
+    /// </summary>
+    /// <param name="mom"></param>
+    /// <param name="dad"></param>
     private void GetParents(ref Genome mom, ref Genome dad)
     {
         Genome referent;
@@ -327,6 +348,12 @@ public class GeneticAlgorithm : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// A kind of randomly selection method
+    /// </summary>
+    /// <param name="collection"></param>
+    /// <param name="length"></param>
+    /// <returns></returns>
     private Genome RoulleteWheelSelection(List<Genome> collection, int length)
     {
         int selectedGenome = 0;
@@ -352,6 +379,13 @@ public class GeneticAlgorithm : MonoBehaviour {
         return collection[selectedGenome];
     }
 
+    /// <summary>
+    /// Cross two genomes for a new genome, in this case, two new babies
+    /// </summary>
+    /// <param name="mom"></param>
+    /// <param name="dad"></param>
+    /// <param name="baby1"></param>
+    /// <param name="baby2"></param>
     private void Crossover(Genome mom, Genome dad, out Genome baby1, out Genome baby2)
     {
         //print("mom\n" + mom);
@@ -391,6 +425,10 @@ public class GeneticAlgorithm : MonoBehaviour {
         //print("baby\n" + baby);
     }
 
+    /// <summary>
+    /// Mutate a genome
+    /// </summary>
+    /// <param name="baby"></param>
     private void Mutate(ref Genome baby)
     {
         for (int gene = 0; gene < baby.Chromosomes[0].Lenght; gene++)
@@ -405,6 +443,10 @@ public class GeneticAlgorithm : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Clear a path previously shown
+    /// </summary>
+    /// <param name="route"></param>
     private void ClearPath(List<Vector2> route)
     {
         for (int index = 0; index < route.Count; index++)
