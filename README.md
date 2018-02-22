@@ -15,7 +15,7 @@ These are the instructions that can be applied to the real organism itself, whic
 
 - **Genome:** just one Chromosome (the route)
 - **Chromosomes:** has *chromosomesLenght* amount of genes with the instructions (i.e 11|10|10|01|01|00, Lenght = 6)
-- **Gene:** is the particular instruction (i.e 10 = 2) *In this project geneLenght always is equals to 2)*
+- **Gene:** is the particular instruction (i.e 10 = 2) *(In this project geneLenght always is equals to 2)*
 - **Nucleotide:** 0 or 1
 
 ### Chromosomes representation
@@ -37,7 +37,7 @@ the alleles in this project represent the directions
 
 Create the initial population randomly.
 
-*Loop until solution is found*
+**Loop until solution is found**
 
   1. Test each chromosome to see how good it is at solving the problem and assign 
   fitness score acordingly.
@@ -45,7 +45,7 @@ Create the initial population randomly.
   2. Select two members from the current population. The selection method depends on the
   selected method.
   
-  3 Dependent on the *crossover rate*, crossover the genes from each chosen chromosome at
+  3. Dependent on the *crossover rate*, crossover the genes from each chosen chromosome at
   a randomly chosen point.
   
   4. Step trhough the chosen chromosome's bits (Nucleotides) and flip dependent on the
@@ -53,9 +53,9 @@ Create the initial population randomly.
   
   5. Repeat steps 2,3 and 4 until a new population of *population size*  has been created
   
-  *End Loop*
+  **End Loop**
   
-  The algorithm is executed until the loop reaches the amount of epochs or a solution is found.
+  **_The algorithm is executed until the loop reaches the amount of epochs or a solution is found._**
 
 ## Algorithm Variables
 
@@ -63,7 +63,7 @@ Create the initial population randomly.
 
   When true, it allows the algorithm to repeat positions when creating/searchin path, walk by positions that it previously walked
 
-* s**howFittestByEpoch : bool**
+* **showFittestByEpoch : bool**
 
   When true, algorithm will show the fittest genome(route) by each generation, the path will has magenta color.
   also shows the all time fittest in yellow color.
@@ -78,41 +78,41 @@ Create the initial population randomly.
   
 * **reproductionMode : enum**
   
-  - *parentsByEpoch*
+  - **_parentsByEpoch_**
   
     The two selected parents creates all the new population (this was just for test purposes, not recomended)
     
-  - *parentsByChild*
+  - **_parentsByChild_**
   
     For every child (in this project we create two childs per parents) we select new parents (could be the same, depends on the parent selection method)
 
 * **parentSelectionMethod : enum**
 
-  - *Random*
+  - **_Random_**
   
     Parents are random genomes picked from the population
     
-  - *Roulette Wheel*
+  - **_Roulette Wheel_**
     
     Parents are selected with RouletteWheelSelection method (algorithm extracted from the book) from the population
     
-  - *FittestAndRandom*
+  - **_FittestAndRandom_**
   
     One parent is the fittest genome of the generation and the other is selected randomly from the population
     
-  - *FittestAndRouletteWheel*
-   
-   One parent is the fittest genome of generation and the other is selected using RouletteWheelSelection method from the population
+  - **_FittestAndRouletteWheel_**
+  
+    One parent is the fittest genome of generation and the other is selected using RouletteWheelSelection method from the population
     
-  - *RandomOfSurvivors*
+  - **_RandomOfSurvivors_**
   
     Parents are selected randomly from the survivors population (the amount of survivors depends by epoch on de survivorsRate variable)
 
-  - *RouletteWheelOfSurvivors*
+  - **_RouletteWheelOfSurvivors_**
   
     Parents are selected with RouletteWheelSelection method from the survivors population
       
-  - *Fittest2OfPop*
+  - **_Fittest2OfPop_**
   
     Parents are the two fittest genomes (was only for test purposes, not recomended)
 
@@ -138,8 +138,8 @@ Create the initial population randomly.
 
 * The algorithm sometimes never found a solution, It happens when it reach a point very close to the maze exit point and then, a significant number of generations pass without finding the solution. The new population begin to be less fittest and degenerates with time (The complete species dies/extinct)
 
-* *ParentByGeneration* is a bad method to use, always use *ParentsByChild* method. Genomes degenerate fast and there is not heritage between generation.
+* **_ParentByGeneration_** is a bad method to use, always use **_ParentsByChild_** method. Genomes degenerate fast and there is not heritage between generation.
 
-* The best results always of reproduction mode were RandomOfSurvivors and Random (still don't know why :smile:). The survivors range at 0.3 (fittest 30% of the population), and with a population at Range [150 - 500]. Greater the populations is, greater probability of finding a solution.
+* The best results always of reproduction mode were **_RandomOfSurvivors_** and **_Random_** (still don't know why :smile:). The survivors range at 0.3 (fittest 30% of the population), and with a population at Range [150 - 500]. Greater the populations is, greater probability of finding a solution.
 
 * Chromosomes lenght at 30 or 35 are good values. Greater chromosomes lenght is, greater probability of finding a solution.
