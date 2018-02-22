@@ -14,8 +14,8 @@ These are the instructions that can be applied to the real organism itself, whic
 ## Representation in this project
 
 - **Genome:** just one Chromosome (the route)
-- **Chromosomes:** has *chromosomesLenght* amount of genes with the instructions (i.e 111010010101011000...)
-- **Gene:** is the particular instruction
+- **Chromosomes:** has *chromosomesLenght* amount of genes with the instructions (i.e 11|10|10|01|01|00, Lenght = 6)
+- **Gene:** is the particular instruction (i.e 10 = 2) *In this project geneLenght always is equals to 2)*
 - **Nucleotide:** 0 or 1
 
 ### Chromosomes representation
@@ -36,16 +36,21 @@ the alleles in this project represent the directions
 ## How Algorithm Works
 
 Create the initial population randomly.
+
 *Loop until solution is found*
 
   1. Test each chromosome to see how good it is at solving the problem and assign 
   fitness score acordingly.
+  
   2. Select two members from the current population. The selection method depends on the
-  selected method
+  selected method.
+  
   3 Dependent on the *crossover rate*, crossover the genes from each chosen chromosome at
-  a randomly chosen point
+  a randomly chosen point.
+  
   4. Step trhough the chosen chromosome's bits (Nucleotides) and flip dependent on the
-  *mutation rate*
+  *mutation rate*.
+  
   5. Repeat steps 2,3 and 4 until a new population of *population size*  has been created
   
   *End Loop*
@@ -87,29 +92,29 @@ Create the initial population randomly.
   
     Parents are random genomes picked from the population
     
-   - *Roulette Wheel*
-   
+  - *Roulette Wheel*
+    
     Parents are selected with RouletteWheelSelection method (algorithm extracted from the book) from the population
     
-   - *FittestAndRandom*
-   
+  - *FittestAndRandom*
+  
     One parent is the fittest genome of the generation and the other is selected randomly from the population
     
-   - *FittestAndRouletteWheel*
+  - *FittestAndRouletteWheel*
    
-    One parent is the fittest genome of generation and the other is selected using RouletteWheelSelection method from the population
+   One parent is the fittest genome of generation and the other is selected using RouletteWheelSelection method from the population
     
-    - *RandomOfSurvivors*
-    
-      Parents are selected randomly from the survivors population (the amount of survivors depends by epoch on de survivorsRate variable)
+  - *RandomOfSurvivors*
+  
+    Parents are selected randomly from the survivors population (the amount of survivors depends by epoch on de survivorsRate variable)
 
-    - *RouletteWheelOfSurvivors*
-    
-      Parents are selected with RouletteWheelSelection method from the survivors population
+  - *RouletteWheelOfSurvivors*
+  
+    Parents are selected with RouletteWheelSelection method from the survivors population
       
-     - *Fittest2OfPop*
-     
-      Parents are the two fittest genomes (was only for test purposes, not recomended)
+  - *Fittest2OfPop*
+  
+    Parents are the two fittest genomes (was only for test purposes, not recomended)
 
 * **survivorsRange : float**
 
@@ -128,7 +133,8 @@ Create the initial population randomly.
   The amount of genes per chromosome
 
 
-### Some conclusions of project
+
+## Some conclusions with this project
 
 * The algorithm sometimes never found a solution, It happens when it reach a point very close to the maze exit point and then, a significant number of generations pass without finding the solution. The new population begin to be less fittest and degenerates with time (The complete species dies/extinct)
 
