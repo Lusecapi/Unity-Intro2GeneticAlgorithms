@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 public enum ReproductionMode
 {
@@ -13,17 +12,18 @@ public enum ReproductionMode
 public enum ParentSelectionMethod
 {
     Random = 0,
-    RoulleteWheel = 1,
+    RouletteWheel = 1,
     FittestAndRandom = 2,
-    FittestAndRoulleteWheel = 3,
+    FittestAndRouletteWheel = 3,
     RandomOfSurvivors = 4,
-    RoulletteWheelOfSurvivors = 5,
+    RouletteWheelOfSurvivors = 5,
     Fittest2OfPop = 6
 }
 
 public class GeneticAlgorithm : MonoBehaviour {
 
-    Text epochsText;
+    public static GeneticAlgorithm Instance { get; private set; }
+
     MazeGenerator mazeGenerator;
     private int[,] mazeMatrix = { 
                             { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
@@ -38,13 +38,13 @@ public class GeneticAlgorithm : MonoBehaviour {
                             { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 } };
 
 
-    //size of population
     public bool allowRepathMove;
     public bool showFittestByEpoch;
     public int totalEpochs = 100;
     public int populationSize = 140;
     public ReproductionMode reproductionMode;
     public ParentSelectionMethod parentSelectionMethod;
+
     [Range(0.1f, 0.9f)]
     public float survivorsRange = 0.1f;
     [Range(0.01f, 0.99f)]
@@ -60,7 +60,7 @@ public class GeneticAlgorithm : MonoBehaviour {
     int genesLenght = 2;
     int fittestGenomeIndex = 0;
     List<Gene> fittestRouteGenes = new List<Gene>();
-    List<Vector2> bestRoute = new List<Vector2>();
+    List<Vector2> bestRouteCoordintes = new List<Vector2>();
     float bestFitnessScore = 0;
     float totalFitnessScore = 0;
     int generation = 0;
@@ -73,8 +73,15 @@ public class GeneticAlgorithm : MonoBehaviour {
 
     private void Awake()
     {
-        mazeGenerator = FindObjectOfType<MazeGenerator>();
-        epochsText = GameObject.FindGameObjectWithTag("Epoch Text").GetComponent<Text>();
+        if (Instance == null)
+        {
+            Instance = this;
+            mazeGenerator = FindObjectOfType<MazeGenerator>();
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void Start()
@@ -84,7 +91,11 @@ public class GeneticAlgorithm : MonoBehaviour {
         StartCoroutine(StartAlgorithm());
     }
 
-    IEnumerator StartAlgorithm()
+    /// <summary>
+    /// The Algorithm
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator StartAlgorithm()
     {
         yield return new WaitForSeconds(0.3f);
 
@@ -93,7 +104,7 @@ public class GeneticAlgorithm : MonoBehaviour {
         while (epoch < totalEpochs && !solutionFound)
         {
             generation = epoch;
-            epochsText.text = string.Format("Generation: {0}", generation);
+            UIManager.Instance.SetGenerationText(generation);
             
             //Update Fitness Scores
             StartCoroutine(UpdateFitnessScores());
@@ -176,13 +187,13 @@ public class GeneticAlgorithm : MonoBehaviour {
             if (showFittestByEpoch)
                 ClearPath(epochBestRoute);
 
-            ClearPath(bestRoute);
+            ClearPath(bestRouteCoordintes);
             fittestGenomeIndex = epochFittestGenomeIndex;
             bestFitnessScore = epochBestFitnessScore;
-            bestRoute = epochBestRoute;
+            bestRouteCoordintes = epochBestRoute;
             fittestRouteGenes = epochBestRouteGenes;
             print("Found new best in Generation/Epoch: " + generation + "\n" + population[fittestGenomeIndex]);
-            StartCoroutine(ShowPath(bestRoute, true));
+            StartCoroutine(ShowPath(bestRouteCoordintes, true));
             yield return new WaitUntil(() => !isShowingPath);
         }
 
@@ -261,12 +272,7 @@ public class GeneticAlgorithm : MonoBehaviour {
             }
         }
 
-        //List<Genome> allPopulation = new List<Genome>();
-        //allPopulation.AddRange(babiesPopulation);
-        //List<Genome> sortedList = allPopulation.OrderByDescending(genome => genome.Fitness).ToList();
         population.Clear();
-        //population.AddRange(sortedList);
-        //population.RemoveRange(sortedList.Count, population.Count - sortedList.Count);
         population = babiesPopulation;
 
     }
@@ -287,7 +293,7 @@ public class GeneticAlgorithm : MonoBehaviour {
                 mom = population[Random.Range(0, population.Count)];
                 dad = population[Random.Range(0, population.Count)];
                 break;
-            case ParentSelectionMethod.RoulleteWheel:
+            case ParentSelectionMethod.RouletteWheel:
                 mom = RoulleteWheelSelection(population, populationSize);
                 dad = RoulleteWheelSelection(population, populationSize);
                 break;
@@ -304,7 +310,7 @@ public class GeneticAlgorithm : MonoBehaviour {
                     mom = population[Random.Range(0, population.Count)];
                 }
                 break;
-            case ParentSelectionMethod.FittestAndRoulleteWheel:
+            case ParentSelectionMethod.FittestAndRouletteWheel:
                 referent = Random.Range(0, 2) == 0 ? mom : dad;
                 if (referent.Equals(mom))
                 {
@@ -323,7 +329,7 @@ public class GeneticAlgorithm : MonoBehaviour {
                 mom = sortedPopulation[Random.Range(0, survivorsLenght)];
                 dad = sortedPopulation[Random.Range(0, survivorsLenght)];
                 break;
-            case ParentSelectionMethod.RoulletteWheelOfSurvivors:
+            case ParentSelectionMethod.RouletteWheelOfSurvivors:
                 sortedPopulation = population.OrderByDescending(genome => genome.Fitness).ToList();
                 survivorsLenght = (int)(populationSize * survivorsRange);
                 mom = RoulleteWheelSelection(sortedPopulation, survivorsLenght);
@@ -388,41 +394,27 @@ public class GeneticAlgorithm : MonoBehaviour {
     /// <param name="baby2"></param>
     private void Crossover(Genome mom, Genome dad, out Genome baby1, out Genome baby2)
     {
-        //print("mom\n" + mom);
-        //print("dad\n" + dad);
-        //Genome referent = Random.Range(0, 2) == 0 ? mom : dad;
-        //print("referent1\n"+referent);
         if (Random.Range(0,1f) > crossoverRate || mom.Equals(dad))
         {
-            //print("no hay cruce");
+            //There is no crossover
             baby1 = mom;
             baby2 = dad;
-            //baby1 = referent;
-            //baby2 = referent.Equals(mom) ? dad : mom;
-            //print("baby\n"+baby);
             return;
         }
-        //print("hay cruce");
-        //A random point is chosen along the length of the chromosome to split the chromosomes
         int splitPoint = Random.Range(0, chromosomesLenght);
-        //print("split at: " + splitPoint);
         baby1 = new Genome(1, chromosomesLenght);
         baby2 = new Genome(1, chromosomesLenght);
-        //print("unboorned baby:\n" + baby);
         for (int index = 0; index < splitPoint; index++)
         {
-            //baby1.Chromosomes[0].Genes[index] = referent.Chromosomes[0].Genes[index];
             baby1.Chromosomes[0].Genes[index] = mom.Chromosomes[0].Genes[index];
             baby2.Chromosomes[0].Genes[index] = dad.Chromosomes[0].Genes[index];
         }
-        //referent = referent.Equals(mom) ? dad : mom;
-        //print("referent2\n" + referent);
+        
         for (int index = splitPoint; index < chromosomesLenght; index++)
         {
             baby1.Chromosomes[0].Genes[index] = dad.Chromosomes[0].Genes[index];
             baby2.Chromosomes[0].Genes[index] = mom.Chromosomes[0].Genes[index];
         }
-        //print("baby\n" + baby);
     }
 
     /// <summary>
